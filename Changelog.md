@@ -35,6 +35,9 @@ Bugfixes:
  * Type system: Contract inheriting from base with unimplemented constructor should be abstract.
  * Optimizer: Number representation bug in the constant optimizer fixed.
 
+Features:
+ * Inline assembly: Support bitwise shift operators.
+
 ### 0.4.10 (2017-03-15)
 
 Features:
