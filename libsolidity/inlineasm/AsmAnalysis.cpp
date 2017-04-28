@@ -309,6 +309,11 @@ bool AsmAnalyzer::operator()(Switch const& _switch)
 	return success;
 }
 
+bool AsmAnalyzer::operator()(assembly::ForLoop const&)
+{
+	solAssert(false, "For loop not supported.");
+}
+
 bool AsmAnalyzer::operator()(Block const& _block)
 {
 	bool success = true;
