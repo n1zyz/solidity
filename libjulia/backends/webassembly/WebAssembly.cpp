@@ -68,37 +68,59 @@ public:
 	{
 		solAssert(false, "Labels are not supported in Julia.");
 	}
-	void operator()(assembly::Literal const&)
+	void operator()(assembly::Literal const& _literal)
 	{
-		solAssert(false, "Not implemented yet.");
+		if (_literal.kind == assembly::LiteralKind::Number)
+			m_assembly += "(i64.const " + _literal.value + ")";
+		else
+			solAssert(false, "Non-number literals not supported.");
 	}
-	void operator()(assembly::Identifier const&)
+	void operator()(assembly::Identifier const& _identifier)
 	{
-		solAssert(false, "Not implemented yet.");
+		m_assembly += "(get_local $" + _identifier.name + ")";
 	}
-	void operator()(assembly::VariableDeclaration const&)
+	void operator()(assembly::VariableDeclaration const& _varDecl)
 	{
-		solAssert(false, "Not implemented yet.");
+		solAssert(_varDecl.variables.size() == 1, "Tuples not supported yet.");
+		m_assembly += "(local $" + _varDecl.variables.front().name + " i64)";
+		m_assembly += "(set_local $" + _varDecl.variables.front().name + " ";
+		boost::apply_visitor(*this, *_varDecl.value);
+		m_assembly += ")";
 	}
-	void operator()(assembly::Assignment const&)
+	void operator()(assembly::Assignment const& _assignment)
 	{
-		solAssert(false, "Not implemented yet.");
+		m_assembly += "(set_local $" + _assignment.variableName.name + " ";
+		boost::apply_visitor(*this, *_assignment.value);
+		m_assembly += ")";
 	}
-	void operator()(assembly::FunctionDefinition const&)
+	void operator()(assembly::FunctionDefinition const& _funDef)
 	{
-		solAssert(false, "Not implemented yet.");
+		m_assembly += "(func $" + _funDef.name + " ";
+		/// FIXME implement parameters
+		/// Scope rules: return parameters must be marked appropriately
+		Generator generator = Generator(_funDef.body);
+		m_assembly += generator.assembly();
+//		boost::apply_visitor(*this, _funDef.body);
+		m_assembly += ")";
 	}
-	void operator()(assembly::FunctionCall const&)
+	void operator()(assembly::FunctionCall const& _funCall)
 	{
-		solAssert(false, "Not implemented yet.");
+		m_assembly += "(call $" + _funCall.functionName.name;
+		for (auto const& _statement: _funCall.arguments)
+		{
+			m_assembly += " ";
+			boost::apply_visitor(*this, _statement);
+		}
+		m_assembly += ")";
 	}
 	void operator()(assembly::Switch const&)
 	{
 		solAssert(false, "Not implemented yet.");
 	}
-	void operator()(assembly::Block const&)
+	void operator()(assembly::Block const& _block)
 	{
-		solAssert(false, "Not implemented yet.");
+		Generator generator = Generator(_block);
+		m_assembly += "(block " + generator.assembly() + ")";
 	}
 private:
 	string m_assembly;
