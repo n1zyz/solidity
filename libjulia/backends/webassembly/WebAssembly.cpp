@@ -87,26 +87,37 @@ public:
 	void operator()(assembly::VariableDeclaration const& _varDecl)
 	{
 		solAssert(_varDecl.variables.size() == 1, "Tuples not supported yet.");
-		m_assembly += "(local $" + _varDecl.variables.front().name + " " + convertType(_varDecl.variables.front().type) + ")";
+		m_assembly += "(local $" + _varDecl.variables.front().name + " " + convertType(_varDecl.variables.front().type) + ")\n";
 		m_assembly += "(set_local $" + _varDecl.variables.front().name + " ";
 		boost::apply_visitor(*this, *_varDecl.value);
-		m_assembly += ")";
+		m_assembly += ")\n";
 	}
 	void operator()(assembly::Assignment const& _assignment)
 	{
 		m_assembly += "(set_local $" + _assignment.variableName.name + " ";
 		boost::apply_visitor(*this, *_assignment.value);
-		m_assembly += ")";
+		m_assembly += ")\n";
 	}
 	void operator()(assembly::FunctionDefinition const& _funDef)
 	{
 		m_assembly += "(func $" + _funDef.name + " ";
-		/// FIXME implement parameters
+		for (auto const& argument: _funDef.arguments)
+			m_assembly += "(param $" + argument.name + " " + convertType(argument.type) + ")";
+		solAssert(_funDef.returns.size() <= 1, "Multiple return values not supported yet.");
+		string returnName;
+		for (auto const& returnArgument: _funDef.returns)
+		{
+			returnName = returnArgument.name;
+			m_assembly += "(result " + convertType(returnArgument.type) + ")";
+			m_assembly += "(local $" + returnArgument.name + " " + convertType(returnArgument.type) + ")";
+		}
 		/// Scope rules: return parameters must be marked appropriately
 		Generator generator = Generator(_funDef.body);
 		m_assembly += generator.assembly();
 //		boost::apply_visitor(*this, _funDef.body);
-		m_assembly += ")";
+		if (!returnName.empty())
+			m_assembly += "(return $" + returnName + ")";
+		m_assembly += ")\n";
 	}
 	void operator()(assembly::FunctionCall const& _funCall)
 	{
@@ -116,7 +127,7 @@ public:
 			m_assembly += " ";
 			boost::apply_visitor(*this, _statement);
 		}
-		m_assembly += ")";
+		m_assembly += ")\n";
 	}
 	void operator()(assembly::Switch const&)
 	{
