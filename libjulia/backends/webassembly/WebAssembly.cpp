@@ -74,7 +74,7 @@ public:
 	void operator()(assembly::Literal const& _literal)
 	{
 		if (_literal.kind == assembly::LiteralKind::Number)
-			m_assembly += "(i64.const " + _literal.value + ")";
+			m_assembly += "(" + convertType(_literal.type) + ".const " + _literal.value + ")";
 		else
 			solAssert(false, "Non-number literals not supported.");
 	}
@@ -85,7 +85,7 @@ public:
 	void operator()(assembly::VariableDeclaration const& _varDecl)
 	{
 		solAssert(_varDecl.variables.size() == 1, "Tuples not supported yet.");
-		m_assembly += "(local $" + _varDecl.variables.front().name + " i64)";
+		m_assembly += "(local $" + _varDecl.variables.front().name + " " + convertType(_varDecl.variables.front().type) + ")";
 		m_assembly += "(set_local $" + _varDecl.variables.front().name + " ";
 		boost::apply_visitor(*this, *_varDecl.value);
 		m_assembly += ")";
@@ -126,6 +126,14 @@ public:
 		m_assembly += "(block " + generator.assembly() + ")";
 	}
 private:
+	string convertType(assembly::Type type)
+	{
+		solAssert(!type.empty(), "Only Julia input is supported.");
+		set<string> const supportedTypes{"u8", "s8", "u32", "s32", "u64", "s64"};
+		solAssert(supportedTypes.count(type), "Type (" + type + ") not supported yet.");
+		return "i64";
+	}
+
 	string m_assembly;
 };
 
