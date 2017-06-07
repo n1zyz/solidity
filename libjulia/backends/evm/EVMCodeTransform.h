@@ -29,6 +29,7 @@ namespace dev
 {
 namespace solidity
 {
+enum class Instruction: uint8_t;
 class ErrorReporter;
 namespace assembly
 {
@@ -148,6 +149,7 @@ private:
 	/// (EVM 1.0 or 1.5).
 	int m_stackAdjustment = 0;
 	std::shared_ptr<Context> m_context;
+	std::map<std::string, solidity::Instruction> m_builtinFunctions;
 };
 
 }
