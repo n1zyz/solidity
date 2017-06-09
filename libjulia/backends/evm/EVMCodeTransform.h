@@ -63,12 +63,14 @@ public:
 	CodeTransform(
 		julia::AbstractAssembly& _assembly,
 		solidity::assembly::AsmAnalysisInfo& _analysisInfo,
+		bool _julia = false,
 		bool _evm15 = false,
 		ExternalIdentifierAccess const& _identifierAccess = ExternalIdentifierAccess()
 	): CodeTransform(
 		_assembly,
 		_analysisInfo,
 		_evm15,
+		_julia,
 		_identifierAccess,
 		_assembly.stackHeight(),
 		std::make_shared<Context>()
@@ -91,6 +93,7 @@ protected:
 	CodeTransform(
 		julia::AbstractAssembly& _assembly,
 		solidity::assembly::AsmAnalysisInfo& _analysisInfo,
+		bool _julia,
 		bool _evm15,
 		ExternalIdentifierAccess const& _identifierAccess,
 		int _stackAdjustment,
@@ -98,6 +101,7 @@ protected:
 	):
 		m_assembly(_assembly),
 		m_info(_analysisInfo),
+		m_julia(_julia),
 		m_evm15(_evm15),
 		m_identifierAccess(_identifierAccess),
 		m_stackAdjustment(_stackAdjustment),
@@ -141,6 +145,7 @@ private:
 	julia::AbstractAssembly& m_assembly;
 	solidity::assembly::AsmAnalysisInfo& m_info;
 	solidity::assembly::Scope* m_scope = nullptr;
+	bool m_julia = false;
 	bool m_evm15 = false;
 	ExternalIdentifierAccess m_identifierAccess;
 	/// Adjustment between the stack height as determined during the analysis phase
